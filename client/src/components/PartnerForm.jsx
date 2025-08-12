@@ -26,11 +26,44 @@ const PartnerForm = () => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const handleSave = async () => {
-    if (!form.employeeName || !form.retailerName) {
-      alert("Please fill at least Employee Name & Retailer Name");
-      return;
+  const validateForm = () => {
+    // Fields except 'tehsil'
+    const requiredFields = Object.keys(form).filter((key) => key !== "tehsil");
+
+    for (let field of requiredFields) {
+      if (!form[field] || form[field].trim() === "") {
+        alert(`Please fill the ${field.replace(/([A-Z])/g, " $1")}`);
+        return false;
+      }
     }
+
+    // Phone validation (only digits & 10 digits)
+    if (!/^\d{10}$/.test(form.retailerContact)) {
+      alert("Retailer Contact must be a valid 10-digit number");
+      return false;
+    }
+
+    // Email validation
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.retailerEmail)) {
+      alert("Please enter a valid email address");
+      return false;
+    }
+
+    // Positive numbers for transaction fields
+    const numberFields = ["bbps", "aeps", "dmt", "cms"];
+    for (let field of numberFields) {
+      if (isNaN(form[field]) || Number(form[field]) < 0) {
+        alert(`${field.toUpperCase()} must be a valid positive number`);
+        return false;
+      }
+    }
+
+    return true;
+  };
+
+  const handleSave = async () => {
+    if (!validateForm()) return;
+
     setLoading(true);
     try {
       await axios.post(
@@ -67,7 +100,7 @@ const PartnerForm = () => {
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-8 px-4">
       <div className="max-w-4xl mx-auto bg-white shadow-2xl rounded-2xl p-8">
         <h2 className="text-3xl font-extrabold text-gray-800 mb-8 text-center">
-          🛒 Retailer Data Form
+          Retailer Data Form
         </h2>
 
         {/* Form */}
@@ -79,7 +112,7 @@ const PartnerForm = () => {
             { name: "retailerEmail", placeholder: "Retailer Email ID" },
             { name: "shopName", placeholder: "Shop Name" },
             { name: "cityVillage", placeholder: "City/Village" },
-            { name: "tehsil", placeholder: "Tehsil" },
+            { name: "tehsil", placeholder: "Tehsil (Optional)" },
             { name: "district", placeholder: "District" },
             { name: "state", placeholder: "State" },
           ].map((field) => (
