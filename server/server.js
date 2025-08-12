@@ -4,7 +4,7 @@ import cors from "cors";
 import XLSX from "xlsx";
 
 const app = express();
-app.use(cors({ origin: "http://localhost:5173" })); // adjust for your frontend URL
+app.use(cors({ origin: "https://partner-details.netlify.app/" })); // adjust for your frontend URL
 app.use(express.json());
 
 // MongoDB Connection

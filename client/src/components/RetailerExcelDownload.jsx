@@ -46,10 +46,13 @@ const RetailerExcelDownload = () => {
       if (startDate) params.start = startDate;
       if (endDate) params.end = endDate;
 
-      const res = await axios.get("http://localhost:5000/api/retailers/excel", {
-        params,
-        responseType: "blob",
-      });
+      const res = await axios.get(
+        "https://retailors-data.onrender.com/api/retailers/excel",
+        {
+          params,
+          responseType: "blob",
+        }
+      );
 
       const url = window.URL.createObjectURL(new Blob([res.data]));
       const link = document.createElement("a");

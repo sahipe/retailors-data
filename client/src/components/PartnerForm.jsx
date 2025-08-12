@@ -33,7 +33,10 @@ const PartnerForm = () => {
     }
     setLoading(true);
     try {
-      await axios.post("http://localhost:5000/api/retailers", form);
+      await axios.post(
+        "https://retailors-data.onrender.com/api/retailers",
+        form
+      );
       alert("Data saved successfully!");
       setForm({
         employeeName: "",
