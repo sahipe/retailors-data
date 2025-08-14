@@ -1,13 +1,30 @@
-// services/uploadImage.js
+import imageCompression from "browser-image-compression";
+
 export const uploadImageToCloudinary = async (file) => {
   if (!file) throw new Error("No file selected");
 
-  const data = new FormData();
-  data.append("file", file);
-  data.append("upload_preset", "retailer_uploads"); // from Cloudinary dashboard
-  data.append("cloud_name", "dkb1moyqh"); // from Cloudinary dashboard
-
   try {
+    // 1️⃣ Compress the image
+    const options = {
+      maxSizeMB: 2, // Target size in MB
+      maxWidthOrHeight: 1920, // Optional: limit dimensions
+      useWebWorker: true,
+    };
+
+    const compressedFile = await imageCompression(file, options);
+
+    console.log(`Original size: ${(file.size / 1024 / 1024).toFixed(2)} MB`);
+    console.log(
+      `Compressed size: ${(compressedFile.size / 1024 / 1024).toFixed(2)} MB`
+    );
+
+    // 2️⃣ Prepare FormData for Cloudinary
+    const data = new FormData();
+    data.append("file", compressedFile);
+    data.append("upload_preset", "retailer_uploads"); // from Cloudinary dashboard
+    data.append("cloud_name", "dkb1moyqh"); // from Cloudinary dashboard
+
+    // 3️⃣ Upload to Cloudinary
     const res = await fetch(
       `https://api.cloudinary.com/v1_1/dkb1moyqh/image/upload`,
       {
@@ -19,9 +36,9 @@ export const uploadImageToCloudinary = async (file) => {
     if (!res.ok) throw new Error("Failed to upload image");
 
     const json = await res.json();
-    return json.secure_url; // This is the image URL
+    return json.secure_url; // Final image URL
   } catch (error) {
-    console.error("Cloudinary upload error:", error);
+    console.error("Image compression or upload error:", error);
     throw error;
   }
 };
