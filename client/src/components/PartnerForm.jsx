@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import axios from "axios";
 import { uploadImageToCloudinary } from "../hooks/uploadImage";
 
@@ -19,17 +19,23 @@ const PartnerForm = () => {
     dmt: "",
     cms: "",
     onboardingStatus: "",
-    retailerImage: "", // new field for image URL
+    retailerImage: "", // Image URL from Cloudinary
   });
 
   const [loading, setLoading] = useState(false);
   const [imageUploading, setImageUploading] = useState(false);
 
+  const fileInputRef = useRef(null);
+
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const handleImageUpload = async (e) => {
+  const openCamera = () => {
+    fileInputRef.current.click();
+  };
+
+  const handleImageCapture = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
@@ -188,14 +194,23 @@ const PartnerForm = () => {
             <option value="No">No</option>
           </select>
 
-          {/* Image Upload */}
+          {/* Image Capture */}
           <div>
             <input
+              ref={fileInputRef}
               type="file"
               accept="image/*"
-              onChange={handleImageUpload}
-              className="border border-gray-300 rounded-lg p-3"
+              capture="environment"
+              style={{ display: "none" }}
+              onChange={handleImageCapture}
             />
+            <button
+              type="button"
+              onClick={openCamera}
+              className="bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 rounded-lg shadow"
+            >
+              📷 Capture Image
+            </button>
             {imageUploading && (
               <p className="text-sm text-blue-500 mt-1">Uploading...</p>
             )}
