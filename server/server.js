@@ -97,6 +97,8 @@ app.get("/api/retailers/excel", async (req, res) => {
       CMS: r.cms,
       "Onboarding Status": r.onboardingStatus,
       "Retailer Image": r.retailerImage,
+      Latitude: r.latitude,
+      Longitude: r.longitude,
     }));
 
     const worksheet = XLSX.utils.json_to_sheet(formattedData);
