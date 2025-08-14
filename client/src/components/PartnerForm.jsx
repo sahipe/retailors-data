@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import axios from "axios";
+import { uploadImageToCloudinary } from "../hooks/uploadImage";
 
 const PartnerForm = () => {
   const [form, setForm] = useState({
@@ -18,16 +19,33 @@ const PartnerForm = () => {
     dmt: "",
     cms: "",
     onboardingStatus: "",
+    retailerImage: "", // new field for image URL
   });
 
   const [loading, setLoading] = useState(false);
+  const [imageUploading, setImageUploading] = useState(false);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
+  const handleImageUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    setImageUploading(true);
+    try {
+      const imageUrl = await uploadImageToCloudinary(file);
+      setForm((prev) => ({ ...prev, retailerImage: imageUrl }));
+    } catch (err) {
+      console.error(err);
+      alert("Image upload failed!");
+    } finally {
+      setImageUploading(false);
+    }
+  };
+
   const validateForm = () => {
-    // Fields except 'tehsil'
     const requiredFields = Object.keys(form).filter((key) => key !== "tehsil");
 
     for (let field of requiredFields) {
@@ -37,19 +55,16 @@ const PartnerForm = () => {
       }
     }
 
-    // Phone validation (only digits & 10 digits)
     if (!/^\d{10}$/.test(form.retailerContact)) {
       alert("Retailer Contact must be a valid 10-digit number");
       return false;
     }
 
-    // Email validation
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.retailerEmail)) {
       alert("Please enter a valid email address");
       return false;
     }
 
-    // Positive numbers for transaction fields
     const numberFields = ["bbps", "aeps", "dmt", "cms"];
     for (let field of numberFields) {
       if (isNaN(form[field]) || Number(form[field]) < 0) {
@@ -87,6 +102,7 @@ const PartnerForm = () => {
         dmt: "",
         cms: "",
         onboardingStatus: "",
+        retailerImage: "",
       });
     } catch (error) {
       console.error(error);
@@ -171,6 +187,26 @@ const PartnerForm = () => {
             <option value="Yes">Yes</option>
             <option value="No">No</option>
           </select>
+
+          {/* Image Upload */}
+          <div>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleImageUpload}
+              className="border border-gray-300 rounded-lg p-3"
+            />
+            {imageUploading && (
+              <p className="text-sm text-blue-500 mt-1">Uploading...</p>
+            )}
+            {form.retailerImage && (
+              <img
+                src={form.retailerImage}
+                alt="Retailer"
+                className="mt-2 w-32 h-32 object-cover rounded-lg shadow"
+              />
+            )}
+          </div>
         </div>
 
         {/* Save Button */}

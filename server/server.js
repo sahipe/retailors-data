@@ -26,7 +26,8 @@ const retailerSchema = new mongoose.Schema({
   tehsil: String,
   district: String,
   state: String,
-  visitingDateTime: Date, // store as Date type for filtering
+  visitingDateTime: Date,
+  retailerImage: String,
   bbps: String,
   aeps: String,
   dmt: String,
@@ -93,6 +94,7 @@ app.get("/api/retailers/excel", async (req, res) => {
       DMT: r.dmt,
       CMS: r.cms,
       "Onboarding Status": r.onboardingStatus,
+      "Retailer Image": r.retailerImage,
     }));
 
     const worksheet = XLSX.utils.json_to_sheet(formattedData);
