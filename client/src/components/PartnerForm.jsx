@@ -200,7 +200,7 @@ const PartnerForm = () => {
               ref={fileInputRef}
               type="file"
               accept="image/*"
-              capture="environment"
+              capture="user"
               style={{ display: "none" }}
               onChange={handleImageCapture}
             />
