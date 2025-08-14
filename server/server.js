@@ -33,6 +33,8 @@ const retailerSchema = new mongoose.Schema({
   dmt: String,
   cms: String,
   onboardingStatus: String,
+  latitude: Number,
+  longitude: Number,
 });
 
 const Retailer = mongoose.model("Retailer", retailerSchema);

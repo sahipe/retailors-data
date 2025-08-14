@@ -1,6 +1,6 @@
 import React, { useState, useRef } from "react";
 import axios from "axios";
-import { uploadImageToCloudinary } from "../hooks/uploadImage";
+import { uploadImageToCloudinary } from "../hooks/uploadImage"; // compress + upload
 
 const PartnerForm = () => {
   const [form, setForm] = useState({
@@ -19,12 +19,13 @@ const PartnerForm = () => {
     dmt: "",
     cms: "",
     onboardingStatus: "",
-    retailerImage: "", // Image URL from Cloudinary
+    retailerImage: "",
+    latitude: "",
+    longitude: "",
   });
 
   const [loading, setLoading] = useState(false);
   const [imageUploading, setImageUploading] = useState(false);
-
   const fileInputRef = useRef(null);
 
   const handleChange = (e) => {
@@ -52,7 +53,9 @@ const PartnerForm = () => {
   };
 
   const validateForm = () => {
-    const requiredFields = Object.keys(form).filter((key) => key !== "tehsil");
+    const requiredFields = Object.keys(form).filter(
+      (key) => key !== "tehsil" && key !== "latitude" && key !== "longitude"
+    );
 
     for (let field of requiredFields) {
       if (!form[field] || form[field].trim() === "") {
@@ -85,37 +88,64 @@ const PartnerForm = () => {
   const handleSave = async () => {
     if (!validateForm()) return;
 
-    setLoading(true);
-    try {
-      await axios.post(
-        "https://retailors-data.onrender.com/api/retailers",
-        form
-      );
-      alert("Data saved successfully!");
-      setForm({
-        employeeName: "",
-        retailerName: "",
-        retailerContact: "",
-        retailerEmail: "",
-        shopName: "",
-        cityVillage: "",
-        tehsil: "",
-        district: "",
-        state: "",
-        visitingDateTime: "",
-        bbps: "",
-        aeps: "",
-        dmt: "",
-        cms: "",
-        onboardingStatus: "",
-        retailerImage: "",
-      });
-    } catch (error) {
-      console.error(error);
-      alert("Failed to save data.");
-    } finally {
-      setLoading(false);
+    if (!navigator.geolocation) {
+      alert("Geolocation is not supported by your browser.");
+      return;
     }
+
+    setLoading(true);
+
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        try {
+          const latitude = position.coords.latitude;
+          const longitude = position.coords.longitude;
+
+          const formWithLocation = {
+            ...form,
+            latitude,
+            longitude,
+          };
+
+          await axios.post(
+            "https://retailors-data.onrender.com/api/retailers",
+            formWithLocation
+          );
+
+          alert("Data saved successfully!");
+          setForm({
+            employeeName: "",
+            retailerName: "",
+            retailerContact: "",
+            retailerEmail: "",
+            shopName: "",
+            cityVillage: "",
+            tehsil: "",
+            district: "",
+            state: "",
+            visitingDateTime: "",
+            bbps: "",
+            aeps: "",
+            dmt: "",
+            cms: "",
+            onboardingStatus: "",
+            retailerImage: "",
+            latitude: "",
+            longitude: "",
+          });
+        } catch (error) {
+          console.error(error);
+          alert("Failed to save data.");
+        } finally {
+          setLoading(false);
+        }
+      },
+      (error) => {
+        console.error("Error getting location:", error);
+        alert("Unable to fetch location. Please enable GPS.");
+        setLoading(false);
+      }
+    );
   };
 
   return (
@@ -125,7 +155,7 @@ const PartnerForm = () => {
           Retailer Data Form
         </h2>
 
-        {/* Form */}
+        {/* Form Fields */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
           {[
             { name: "employeeName", placeholder: "Employee Name" },
@@ -194,13 +224,13 @@ const PartnerForm = () => {
             <option value="No">No</option>
           </select>
 
-          {/* Image Capture */}
+          {/* Camera Capture */}
           <div>
             <input
               ref={fileInputRef}
               type="file"
               accept="image/*"
-              capture="user"
+              capture="environment"
               style={{ display: "none" }}
               onChange={handleImageCapture}
             />
@@ -208,13 +238,12 @@ const PartnerForm = () => {
               type="button"
               onClick={openCamera}
               className="bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 rounded-lg shadow"
+              disabled={imageUploading}
             >
-              📷 Capture Image
+              📷 {imageUploading ? "Uploading..." : "Capture Image"}
             </button>
-            {imageUploading && (
-              <p className="text-sm text-blue-500 mt-1">Uploading...</p>
-            )}
-            {form.retailerImage && (
+
+            {form.retailerImage && !imageUploading && (
               <img
                 src={form.retailerImage}
                 alt="Retailer"
@@ -228,7 +257,7 @@ const PartnerForm = () => {
         <div className="flex justify-center mt-8">
           <button
             onClick={handleSave}
-            disabled={loading}
+            disabled={loading || imageUploading}
             className="bg-gradient-to-r from-green-500 to-green-600 text-white px-8 py-3 rounded-xl shadow-lg flex items-center justify-center"
           >
             {loading && (

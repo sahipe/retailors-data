@@ -13,11 +13,6 @@ export const uploadImageToCloudinary = async (file) => {
 
     const compressedFile = await imageCompression(file, options);
 
-    console.log(`Original size: ${(file.size / 1024 / 1024).toFixed(2)} MB`);
-    console.log(
-      `Compressed size: ${(compressedFile.size / 1024 / 1024).toFixed(2)} MB`
-    );
-
     // 2️⃣ Prepare FormData for Cloudinary
     const data = new FormData();
     data.append("file", compressedFile);
